@@ -8,6 +8,7 @@ import typeDefs from './schemas/typeDefs';
 import resolvers from './schemas/resolvers';
 import { authenticateGraphQL } from './services/auth';
 
+
 const app = express();
 const PORT = process.env.PORT || 3001;
 

@@ -42,6 +42,7 @@ const SaveBookInputType = gql`
 const QueryType = gql`
   type Query {
     me: User!
+    getSingleUser(id: ID, username: String): User
   }
 `;
 
@@ -49,8 +50,10 @@ const MutationType = gql`
   type Mutation {
     login(email: String!, password: String!): Auth!
     addUser(username: String!, email: String!, password: String!): Auth!
+    createUser(username: String!, email: String!, password: String!): Auth!
     saveBook(book: SaveBookInput!): User!
     removeBook(bookId: String!): User!
+    deleteBook(bookId: String!): User!
   }
 `;
 
