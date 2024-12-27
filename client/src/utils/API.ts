@@ -58,3 +58,7 @@ export const deleteBook = (bookId: string, token: string) => {
 export const searchGoogleBooks = (query: string) => {
   return fetch(`https://www.googleapis.com/books/v1/volumes?q=${query}`);
 };
+
+const API ={ getMe, createUser, loginUser, saveBook, deleteBook, searchGoogleBooks };
+
+export default API;

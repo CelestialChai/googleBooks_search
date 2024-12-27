@@ -6,3 +6,5 @@ export interface Book {
   link: string;
   title: string;
 }
+
+export default Book;

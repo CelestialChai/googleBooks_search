@@ -1,20 +1,13 @@
 import { useState, useEffect } from 'react';
 import type { FormEvent } from 'react';
-import {
-  Container,
-  Col,
-  Form,
-  Button,
-  Card,
-  Row
-} from 'react-bootstrap';
-
+import { Container, Col, Form, Button, Card, Row } from 'react-bootstrap';
 import Auth from '../utils/auth';
 import { useMutation } from '@apollo/client'; // Apollo hook import
 import { SAVE_BOOK } from '../utils/mutations'; // Assuming this mutation is in your mutations.ts
 import { saveBookIds, getSavedBookIds } from '../utils/localStorage';
 import type { Book } from '../models/Book';
 import type { GoogleAPIBook } from '../models/GoogleAPIBook';
+import { searchGoogleBooks } from '../utils/API';
 
 const SearchBooks = () => {
   // create state for holding returned google api data

@@ -11,27 +11,29 @@ export const authMiddleware = (req: Request, res: Response, next: NextFunction):
   let token = req.headers.authorization;
 
   if (token) {
-    // Remove "Bearer " from the token string if present
     token = token.split(' ')[1];
   }
 
   if (!token) {
-    req.user = undefined; // No token; user is not authenticated
+    (req as any).user = undefined;
     return next();
   }
 
   try {
     const decodedToken = jwt.verify(token, SECRET_KEY) as JwtPayload;
-    req.user = decodedToken; // Attach user data to request
-  } catch (err) {
-    console.error('Invalid token:', err.message);
-    req.user = undefined;
+    (req as any).user = decodedToken;
+  } catch (err: unknown) {
+    if (err instanceof Error) {
+      console.error('Invalid token:', err.message);
+    } else {
+      console.error('An unknown error occurred during token verification');
+    }
+    (req as any).user = undefined;
   }
 
   return next();
 };
 
-// Context creation function for Apollo Server
 export const createContext = ({ req }: { req: Request }): AuthContext => {
   const token = req.headers.authorization?.split(' ')[1];
 
@@ -42,9 +44,16 @@ export const createContext = ({ req }: { req: Request }): AuthContext => {
   try {
     const decodedToken = jwt.verify(token, SECRET_KEY);
     return { user: decodedToken };
-  } catch (err) {
-    console.error('Invalid token in context:', err.message);
+  } catch (err: unknown) {
+    if (err instanceof Error) {
+      console.error('Invalid token in context:', err.message);
+    } else {
+      console.error('An unknown error occurred during token verification in context');
+    }
     return { user: undefined };
   }
 };
 
+const Auth = { authMiddleware, createContext };
+
+export default Auth;

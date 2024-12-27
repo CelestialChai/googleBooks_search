@@ -12,3 +12,5 @@ export interface GoogleAPIBook {
     id: string;
     volumeInfo: GoogleAPIVolumeInfo;
 }
+
+export default GoogleAPIBook;
