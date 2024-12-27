@@ -1,59 +1,49 @@
-import { Request, Response, NextFunction } from 'express';
-import jwt, { JwtPayload } from 'jsonwebtoken';
+import { jwtDecode } from 'jwt-decode';
 
-const SECRET_KEY = process.env.JWT_SECRET || 'default_secret_key';
-
-export interface AuthContext {
-  user?: JwtPayload | string;
+interface UserToken {
+  name: string;
+  exp: number;
 }
 
-export const authMiddleware = (req: Request, res: Response, next: NextFunction): void => {
-  let token = req.headers.authorization;
-
-  if (token) {
-    token = token.split(' ')[1];
-  }
-
-  if (!token) {
-    (req as any).user = undefined;
-    return next();
-  }
-
-  try {
-    const decodedToken = jwt.verify(token, SECRET_KEY) as JwtPayload;
-    (req as any).user = decodedToken;
-  } catch (err: unknown) {
-    if (err instanceof Error) {
-      console.error('Invalid token:', err.message);
-    } else {
-      console.error('An unknown error occurred during token verification');
+class Auth {
+  getProfile(): UserToken | null {
+    const token = this.getToken();
+    if (!token) {
+      return null;
     }
-    (req as any).user = undefined;
+    return jwtDecode<UserToken>(token);
   }
 
-  return next();
-};
-
-export const createContext = ({ req }: { req: Request }): AuthContext => {
-  const token = req.headers.authorization?.split(' ')[1];
-
-  if (!token) {
-    return { user: undefined };
+  loggedIn(): boolean {
+    const token = this.getToken();
+    return !!token && !this.isTokenExpired(token);
   }
 
-  try {
-    const decodedToken = jwt.verify(token, SECRET_KEY);
-    return { user: decodedToken };
-  } catch (err: unknown) {
-    if (err instanceof Error) {
-      console.error('Invalid token in context:', err.message);
-    } else {
-      console.error('An unknown error occurred during token verification in context');
+  isTokenExpired(token: string): boolean {
+    try {
+      const decoded = jwtDecode<UserToken>(token);
+      if (decoded.exp < Date.now() / 1000) {
+        return true;
+      }
+      return false;
+    } catch (err) {
+      return false;
     }
-    return { user: undefined };
   }
-};
 
-const Auth = { authMiddleware, createContext };
+  getToken(): string | null {
+    return localStorage.getItem('id_token');
+  }
 
-export default Auth;
+  login(idToken: string): void {
+    localStorage.setItem('id_token', idToken);
+    window.location.assign('/');
+  }
+
+  logout(): void {
+    localStorage.removeItem('id_token');
+    window.location.assign('/');
+  }
+}
+
+export default new Auth();

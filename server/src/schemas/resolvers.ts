@@ -1,111 +1,94 @@
+import { AuthenticationError } from 'apollo-server-express';
 import User from '../models/User';
 import { signToken } from '../services/auth';
 
 const resolvers = {
   Query: {
-    // Query to get a user by either their ID or username
-    getUser: async (_parent: any, { userId, username }: any, context: { user: { _id: any; }; }) => {
-      try {
-        // Ensure the user is authenticated
-        if (context.user) {
-          // If a user ID or username is provided, fetch accordingly
-          const user = await User.findOne({
-            $or: [{ _id: userId || context.user._id }, { username }],
-          });
-          if (!user) {
-            throw new Error('Cannot find a user with this ID or username');
-          }
-          return user;
-        }
-        throw new Error('Not authenticated');
-      } catch (err) {
-        throw new Error(err.message);
+    getSingleUser: async (_: any, args: { id?: string; username?: string }, context: any) => {
+      const user = context.user;
+
+      if (!user) {
+        throw new AuthenticationError('You must be logged in');
       }
+
+      const foundUser = await User.findOne({
+        $or: [{ _id: user._id }, { username: args.username }],
+      });
+
+      if (!foundUser) {
+        throw new Error('User not found');
+      }
+
+      return foundUser;
     },
   },
-
   Mutation: {
-    // Mutation to create a user and return a token and user
-    createUser: async (_parent: any, { username, email, password }: any) => {
-      try {
-        // Create the user
-        const user = await User.create({ username, email, password });
-        if (!user) {
-          throw new Error('Something went wrong!');
-        }
+    createUser: async (_parent: any, args: { username: string; email: string; password: string }, _context: any) => {
+     
+      const user = await User.create(args);
 
-        // Generate a JWT token for the new user
-        const token = signToken(user.username, user.password, user._id);
-        return { token, user };
-      } catch (err) {
-        throw new Error('Error creating user: ' + err.message);
+      if (!user) {
+        throw new Error('Something went wrong!');
       }
+
+       const token = signToken(user.username, user.email, user._id);
+      return { token, user };
     },
 
-    // Mutation to log in a user, validate the password, and return a token
-    login: async (_parent: any, { username, email, password }: any) => {
-      try {
-        // Find the user by username or email
-        const user = await User.findOne({
-          $or: [{ username }, { email }],
-        });
-        if (!user) {
-          throw new Error("Can't find this user");
-        }
+    login: async (_parent: any, args: { username: string; email: string; password: string }, _context: any) => {
+      const user = await User.findOne({
+        $or: [{ username: args.username }, { email: args.email }],
+      });
 
-        // Validate the password
-        const correctPw = await user.isCorrectPassword(password);
-        if (!correctPw) {
-          throw new Error('Wrong password!');
-        }
-
-        // Generate a JWT token for the user
-        const token = signToken(user.username, user.password, user._id);
-        return { token, user };
-      } catch (err) {
-        throw new Error(err.message);
+      if (!user) {
+        throw new Error("Can't find this user");
       }
+
+      const correctPw = await user.isCorrectPassword(args.password);
+
+      if (!correctPw) {
+        throw new Error('Wrong password!');
+      }
+
+
+      const token = signToken(user.username, user.email, user._id);
+      return { token, user };
     },
 
-    // Mutation to save a book to the user's `savedBooks` field
-    saveBook: async (_parent: any, { book }: any, context: { user: { _id: any; }; }) => {
-      try {
-        // Ensure the user is authenticated
-        if (context.user) {
-          // Add the book to the savedBooks array (avoiding duplicates)
-          const updatedUser = await User.findOneAndUpdate(
-            { _id: context.user._id },
-            { $addToSet: { savedBooks: book } },
-            { new: true, runValidators: true }
-          );
-          return updatedUser;
-        }
-        throw new Error('Not authenticated');
-      } catch (err) {
-        throw new Error('Error saving book: ' + err.message);
+    saveBook: async (_parent: any, args: { book: any }, context: any) => {
+      const user = context.user;
+
+      if (!user) {
+        throw new AuthenticationError('You must be logged in');
       }
+
+      const updatedUser = await User.findOneAndUpdate(
+        { _id: user._id },
+        { $addToSet: { savedBooks: args.book } },
+        { new: true, runValidators: true }
+      );
+
+      return updatedUser;
     },
 
-    // Mutation to delete a book from the user's savedBooks field
-    deleteBook: async (_parent: any, { bookId }: any, context: { user: { _id: any; }; }) => {
-      try {
-        // Ensure the user is authenticated
-        if (context.user) {
-          // Remove the book from the savedBooks array
-          const updatedUser = await User.findOneAndUpdate(
-            { _id: context.user._id },
-            { $pull: { savedBooks: { bookId } } },
-            { new: true }
-          );
-          if (!updatedUser) {
-            throw new Error("Couldn't find the user or book to remove!");
-          }
-          return updatedUser;
-        }
-        throw new Error('Not authenticated');
-      } catch (err) {
-        throw new Error('Error deleting book: ' + err.message);
+    deleteBook: async (_parent: any, args: { bookId: string }, context: any) => {
+      const user = context.user;
+
+      if (!user) {
+        throw new AuthenticationError('You must be logged in');
       }
+
+      const updatedUser = await User.findOneAndUpdate(
+        { _id: user._id },
+        { $pull: { savedBooks: { bookId: args.bookId } } },
+        { new: true }
+      );
+
+      if (!updatedUser) {
+        throw new Error("Couldn't find user with this id!");
+      }
+
+      return updatedUser;
     },
   },
 };

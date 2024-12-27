@@ -14,6 +14,7 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
+    "@types/jsonwebtoken": "^9.0.7",
     "concurrently": "^8.2.0"
   },
   "dependencies": {

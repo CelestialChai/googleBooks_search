@@ -2,26 +2,22 @@ import express from 'express';
 import path from 'node:path';
 import { ApolloServer } from '@apollo/server';
 import { expressMiddleware } from '@apollo/server/express4';
-import db from './config/connection.js';
-import routes from './routes/index.js';
-import typeDefs from './graphql/typeDefs';
-import resolvers from './graphql/resolvers';
-import { authenticateGraphQL } from './middleware/auth';
-import type { JwtPayload } from './middleware/auth';
+import db from './config/connection';
+import routes from './routes/index';
+import typeDefs from './schemas/typeDefs';
+import resolvers from './schemas/resolvers';
+import { authenticateGraphQL } from './services/auth';
 
 const app = express();
 const PORT = process.env.PORT || 3001;
 
-// Middleware to parse URL-encoded and JSON data
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
-// Serve static assets in production
 if (process.env.NODE_ENV === 'production') {
   app.use(express.static(path.join(__dirname, '../client/build')));
 }
 
-// Apollo Server setup
 async function startApolloServer() {
   const server = new ApolloServer({
     typeDefs,
@@ -30,7 +26,6 @@ async function startApolloServer() {
 
   await server.start();
 
-  // Apply Apollo Server middleware
   app.use(
     '/graphql',
     expressMiddleware(server, {
@@ -43,10 +38,11 @@ async function startApolloServer() {
   );
 }
 
-// Connect to the database and start the server
 db.once('open', async () => {
-  await startApolloServer(); // Start Apollo Server
-  app.use(routes); // Use REST routes
+  await startApolloServer();
+  app.use(routes);
 
-  app.listen(PORT, () => console.log(`🌍 Now listening on localhost:${PORT}`));
+  app.listen(PORT, () => {
+    console.log(`🌍 Now listening on localhost:${PORT}`);
+  });
 });
