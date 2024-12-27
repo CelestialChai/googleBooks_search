@@ -1,6 +1,5 @@
 import { gql } from 'apollo-server-express';
 
-//Book
 const BookType = gql`
   type Book {
     bookId: String!
@@ -12,7 +11,6 @@ const BookType = gql`
   }
 `;
 
-//User
 const UserType = gql`
   type User {
     _id: ID!
@@ -23,7 +21,6 @@ const UserType = gql`
   }
 `;
 
-//Auth
 const AuthType = gql`
   type Auth {
     token: String!
@@ -31,35 +28,30 @@ const AuthType = gql`
   }
 `;
 
-//Query
+const SaveBookInputType = gql`
+  input SaveBookInput {
+    authors: [String]!
+    description: String!
+    title: String!
+    bookId: String!
+    image: String!
+    link: String!
+  }
+`;
+
 const QueryType = gql`
   type Query {
     me: User!
   }
 `;
 
-//Mutation
 const MutationType = gql`
   type Mutation {
-    # Login mutation - accepts email and password and returns an Auth object
     login(email: String!, password: String!): Auth!
-
-    # Add new user - accepts username, email, and password and returns an Auth object
     addUser(username: String!, email: String!, password: String!): Auth!
-
-    # Save a book to a user's savedBooks field - returns the updated User object
-    saveBook(
-      authors: [String]!
-      description: String!
-      title: String!
-      bookId: String!
-      image: String!
-      link: String!
-    ): User!
-
-    # Remove a book from savedBooks - returns the updated User object
+    saveBook(book: SaveBookInput!): User!
     removeBook(bookId: String!): User!
   }
 `;
 
-export default [BookType, UserType, AuthType, QueryType, MutationType];
+export default [BookType, UserType, AuthType, SaveBookInputType, QueryType, MutationType];
