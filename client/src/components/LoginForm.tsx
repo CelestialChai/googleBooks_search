@@ -42,7 +42,7 @@ const LoginForm = ({ handleModalClose }: { handleModalClose: () => void }) => {
     }
 
     try {
-      await loginUser({ variables: { email: userFormData.email, password: userFormData.password } });
+      await loginUser({ variables: {username: userFormData.username, email: userFormData.email, password: userFormData.password } });
     } catch (err) {
       console.error(err);
       setShowAlert(true);

@@ -1,64 +1,111 @@
-import type { User } from '../models/User.js';
-import type { Book } from '../models/Book.js';
+import { gql } from '@apollo/client';
+import { ApolloClient, InMemoryCache, } from '@apollo/client';
+import Auth from './auth';
 
-// route to get logged in user's info (needs the token)
-export const getMe = (token: string) => {
-  return fetch('/api/users/me', {
-    headers: {
-      'Content-Type': 'application/json',
-      authorization: `Bearer ${token}`,
-    },
-  });
+const GET_ME = gql`
+  query GetMe {
+    me {
+      _id
+      username
+      email
+    }
+  }
+`;
+
+const CREATE_USER = gql`
+  mutation CreateUser($username: String!, $email: String!, $password: String!) {
+    createUser(username: $username, email: $email, password: $password) {
+      token
+    }
+  }
+`;
+
+const LOGIN_USER = gql`
+  mutation LoginUser($email: String!, $password: String!) {
+    loginUser(email: $email, password: $password) {
+      token
+    }
+  }
+`;
+
+const SAVE_BOOK = gql`
+  mutation SaveBook($bookData: BookInput!) {
+    saveBook(bookData: $bookData) {
+      _id
+      title
+      authors
+      description
+    }
+  }
+`;
+
+const DELETE_BOOK = gql`
+  mutation DeleteBook($bookId: String!) {
+    deleteBook(bookId: $bookId) {
+      _id
+      title
+    }
+  }
+`;
+
+const API = {
+  getMe: () => {
+    return client.query({
+      query: GET_ME,
+      context: {
+        headers: {
+          Authorization: `Bearer ${Auth.getToken()}`,
+        },
+      },
+    });
+  },
+
+  createUser: (userData: { username: string; email: string; password: string }) => {
+    return client.mutate({
+      mutation: CREATE_USER,
+      variables: userData,
+    });
+  },
+
+  loginUser: (userData: { email: string; password: string }) => {
+    return client.mutate({
+      mutation: LOGIN_USER,
+      variables: userData,
+    });
+  },
+
+  saveBook: (bookData: { title: string; authors: string[]; description: string }) => {
+    return client.mutate({
+      mutation: SAVE_BOOK,
+      variables: { bookData },
+      context: {
+        headers: {
+          Authorization: `Bearer ${Auth.getToken()}`,
+        },
+      },
+    });
+  },
+
+  deleteBook: (bookId: string) => {
+    return client.mutate({
+      mutation: DELETE_BOOK,
+      variables: { bookId },
+      context: {
+        headers: {
+          Authorization: `Bearer ${Auth.getToken()}`,
+        },
+      },
+    });
+  },
+
+  searchGoogleBooks: (query: string) => {
+    return fetch(`https://www.googleapis.com/books/v1/volumes?q=${query}`);
+  },
 };
 
-export const createUser = (userData: User) => {
-  return fetch('/api/users', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(userData),
-  });
-};
-
-export const loginUser = (userData: User) => {
-  return fetch('/api/users/login', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(userData),
-  });
-};
-
-// save book data for a logged in user
-export const saveBook = (bookData: Book, token: string) => {
-  return fetch('/api/users', {
-    method: 'PUT',
-    headers: {
-      'Content-Type': 'application/json',
-      authorization: `Bearer ${token}`,
-    },
-    body: JSON.stringify(bookData),
-  });
-};
-
-// remove saved book data for a logged in user
-export const deleteBook = (bookId: string, token: string) => {
-  return fetch(`/api/users/books/${bookId}`, {
-    method: 'DELETE',
-    headers: {
-      authorization: `Bearer ${token}`,
-    },
-  });
-};
-
-// make a search to google books api
-// https://www.googleapis.com/books/v1/volumes?q=harry+potter
-export const searchGoogleBooks = (query: string) => {
-  return fetch(`https://www.googleapis.com/books/v1/volumes?q=${query}`);
-};
-
-const API ={ getMe, createUser, loginUser, saveBook, deleteBook, searchGoogleBooks };
+const client = new ApolloClient({
+  uri: 'http://localhost:3001/graphql',
+  cache: new InMemoryCache(),
+});
 
 export default API;

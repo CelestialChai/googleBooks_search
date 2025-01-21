@@ -7,10 +7,10 @@ import App from './App.jsx';
 import SearchBooks from './pages/SearchBooks';
 import SavedBooks from './pages/SavedBooks';
 
-// Set up the Apollo Client
 const client = new ApolloClient({
-  uri: 'http://localhost:3000/graphql', // Replace with your GraphQL endpoint
+  uri: 'http://localhost:3001/graphql',
   cache: new InMemoryCache(),
+  credentials: 'include',
 });
 
 const router = createBrowserRouter([

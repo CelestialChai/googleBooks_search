@@ -2,23 +2,23 @@ import { useState, useEffect } from 'react';
 import type { FormEvent } from 'react';
 import { Container, Col, Form, Button, Card, Row } from 'react-bootstrap';
 import Auth from '../utils/auth';
-import { useMutation } from '@apollo/client'; // Apollo hook import
-import { SAVE_BOOK } from '../utils/mutations'; // Assuming this mutation is in your mutations.ts
+import { useMutation } from '@apollo/client';
+import { SAVE_BOOK } from '../utils/mutations';
 import { saveBookIds, getSavedBookIds } from '../utils/localStorage';
 import type { Book } from '../models/Book';
 import type { GoogleAPIBook } from '../models/GoogleAPIBook';
-import { searchGoogleBooks } from '../utils/API';
+import  API  from '../utils/API';
 
 const SearchBooks = () => {
-  // create state for holding returned google api data
+
   const [searchedBooks, setSearchedBooks] = useState<Book[]>([]);
-  // create state for holding our search field data
+
   const [searchInput, setSearchInput] = useState('');
 
-  // create state to hold saved bookId values
+
   const [savedBookIds, setSavedBookIds] = useState(getSavedBookIds());
 
-  // set up useEffect hook to save `savedBookIds` list to localStorage on component unmount
+  
   useEffect(() => {
     return () => saveBookIds(savedBookIds);
   });
@@ -35,7 +35,7 @@ const SearchBooks = () => {
     }
 
     try {
-      const response = await searchGoogleBooks(searchInput);
+      const response = await API.searchGoogleBooks(searchInput);
 
       if (!response.ok) {
         throw new Error('something went wrong!');

@@ -1,7 +1,9 @@
 import { jwtDecode } from 'jwt-decode';
 
 interface UserToken {
-  name: string;
+  _id: string;
+  username: string;
+  email: string;
   exp: number;
 }
 
@@ -11,7 +13,12 @@ class Auth {
     if (!token) {
       return null;
     }
-    return jwtDecode<UserToken>(token);
+    try {
+      return jwtDecode<UserToken>(token);
+    } catch (err) {
+      console.error('Error decoding token in getProfile:', err);
+      return null;
+    }
   }
 
   loggedIn(): boolean {
@@ -22,12 +29,10 @@ class Auth {
   isTokenExpired(token: string): boolean {
     try {
       const decoded = jwtDecode<UserToken>(token);
-      if (decoded.exp < Date.now() / 1000) {
-        return true;
-      }
-      return false;
+      return decoded.exp < Date.now() / 1000;
     } catch (err) {
-      return false;
+      console.error('Error decoding token in isTokenExpired:', err);
+      return true; // Assume token is expired if decoding fails
     }
   }
 
@@ -36,13 +41,15 @@ class Auth {
   }
 
   login(idToken: string): void {
+    console.log('Logging in with token:', idToken); // Debugging log
     localStorage.setItem('id_token', idToken);
-    window.location.assign('/');
+    window.location.assign('/'); // Redirect to home page
   }
 
   logout(): void {
+    console.log('Logging out user'); // Debugging log
     localStorage.removeItem('id_token');
-    window.location.assign('/');
+    window.location.assign('/'); // Redirect to home page
   }
 }
 
