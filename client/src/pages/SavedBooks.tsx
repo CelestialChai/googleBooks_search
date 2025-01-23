@@ -1,30 +1,35 @@
 import { Container, Card, Button, Row, Col } from 'react-bootstrap';
-import { useQuery, useMutation } from '@apollo/client'; // Apollo hooks
-import { GET_ME } from '../utils/queries'; // GraphQL query
-import { REMOVE_BOOK } from '../utils/mutations'; // GraphQL mutation
+import { useQuery, useMutation } from '@apollo/client';
+import { GET_ME } from '../utils/queries';
+import { REMOVE_BOOK, SAVE_BOOK } from '../utils/mutations';
 import Auth from '../utils/auth';
 import { removeBookId } from '../utils/localStorage';
-import type { Book, User }  from '../models';
+import type { Book, User } from '../models';
 
 const SavedBooks = () => {
-  // Use Apollo's useQuery hook to fetch user data
-  const { loading, data } = useQuery<{ me: User }>(GET_ME);
+  // Fetch user data using Apollo's `useQuery` hook
+  const { loading, data } = useQuery<{ me: User }>(GET_ME, {
+    fetchPolicy: 'network-only', // Ensures fresh data is fetched from the server
+  });
   const userData = data?.me;
 
-  // Use Apollo's useMutation hook for the REMOVE_BOOK mutation
-  const [removeBook] = useMutation(REMOVE_BOOK);
+  // Mutation to save a book
+  const [saveBook, { error: saveError }] = useMutation(SAVE_BOOK);
 
-  // Create a function to delete a book using the mutation
+  // Mutation to remove a book
+  const [removeBook, { error: removeError }] = useMutation(REMOVE_BOOK);
+
   const handleDeleteBook = async (bookId: string) => {
     const token = Auth.loggedIn() ? Auth.getToken() : null;
 
     if (!token) {
+      console.error('No valid token found.');
       return false;
     }
 
     try {
-      // Execute the REMOVE_BOOK mutation
-      await removeBook({
+      // Execute REMOVE_BOOK mutation
+      const { data } = await removeBook({
         variables: { bookId },
         update(cache) {
           const normalizedId = cache.identify({ id: bookId, __typename: 'Book' });
@@ -33,16 +38,60 @@ const SavedBooks = () => {
         },
       });
 
+      if (data?.removeBook) {
+        console.log(`Book with ID ${bookId} removed successfully.`);
+      }
+
       // Remove the book's ID from localStorage
       removeBookId(bookId);
     } catch (err) {
-      console.error(err);
+      console.error('Error removing book:', err);
     }
   };
 
-  // If data is still loading, display a loading message
+  const handleSaveBook = async (book: Book) => {
+    const token = Auth.loggedIn() ? Auth.getToken() : null;
+
+    if (!token) {
+      console.error('No valid token found.');
+      return false;
+    }
+
+    try {
+      console.log('Book data being sent to mutation:', book);
+      // Execute SAVE_BOOK mutation
+      const { data } = await saveBook({
+        variables: {
+          book: {
+            authors: book.authors,
+            description: book.description,
+            title: book.title,
+            bookId: book.bookId,
+            image: book.image,
+            link: book.link,
+          },
+        },
+      });
+
+      if (data?.saveBook) {
+        console.log(`Book titled "${book.title}" saved successfully.`);
+      }
+    } catch (err) {
+      console.error('Error saving book:', err);
+    }
+  };
+
+  // Display loading state
   if (loading) {
     return <h2>LOADING...</h2>;
+  }
+
+  // Display errors for mutations
+  if (saveError) {
+    console.error('Error in SAVE_BOOK mutation:', saveError.message);
+  }
+  if (removeError) {
+    console.error('Error in REMOVE_BOOK mutation:', removeError.message);
   }
 
   return (
@@ -58,27 +107,33 @@ const SavedBooks = () => {
       </div>
       <Container>
         <h2 className="pt-5">
-          {userData?.savedBooks.length
+          {userData?.savedBooks?.length
             ? `Viewing ${userData.savedBooks.length} saved ${
                 userData.savedBooks.length === 1 ? 'book' : 'books'
-              }:`
+              }`
             : 'You have no saved books!'}
         </h2>
         <Row>
-          {userData?.savedBooks.map((book: Book) => (
+          {userData?.savedBooks?.map((book: Book) => (
             <Col md="4" key={book.bookId}>
               <Card border="dark">
-                {book.image ? (
+                {book.image && (
                   <Card.Img
                     src={book.image}
                     alt={`The cover for ${book.title}`}
                     variant="top"
                   />
-                ) : null}
+                )}
                 <Card.Body>
                   <Card.Title>{book.title}</Card.Title>
                   <p className="small">Authors: {book.authors.join(', ')}</p>
                   <Card.Text>{book.description}</Card.Text>
+                  <Button
+                    className="btn-block btn-success mb-2"
+                    onClick={() => handleSaveBook(book)}
+                  >
+                    Save this Book!
+                  </Button>
                   <Button
                     className="btn-block btn-danger"
                     onClick={() => handleDeleteBook(book.bookId)}

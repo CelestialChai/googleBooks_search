@@ -56,16 +56,62 @@ const resolvers = {
         console.log('User created successfully:', newUser);
 
         const token = signToken(newUser.username, newUser.email, newUser._id);
-                return { token, user: newUser };
-              } catch (error) {
-                if (error instanceof Error) {
-                  throw new Error(error.message);
-                } else {
-                  throw new Error('An unknown error occurred');
-                }
-              }
-            },
-          },
-        };
+        return { token, user: newUser };
+      } catch (error) {
+        if (error instanceof Error) {
+          throw new Error(error.message);
+        } else {
+          throw new Error('An unknown error occurred');
+        }
+      }
+    },
 
-        export default resolvers;
+    // Save a book to the user's savedBooks array
+    saveBook: async (
+      _parent: any,
+      { book }: { book: { authors: string[]; description: string; title: string; bookId: string; image?: string; link?: string } },
+      context: any
+    ): Promise<UserDocument> => {
+      const user = context.user;
+
+      if (!user) {
+        throw new AuthenticationError('You must be logged in');
+      }
+
+      const updatedUser = await User.findByIdAndUpdate(
+        { _id: user._id },
+        { $addToSet: { savedBooks: book } },
+        { new: true, runValidators: true }
+      );
+
+      if (!updatedUser) {
+        throw new Error('Error saving the book');
+      }
+
+      return updatedUser;
+    },
+
+    // Remove a book from the user's savedBooks array
+    removeBook: async (_parent: any, { bookId }: { bookId: string }, context: any): Promise<UserDocument> => {
+      const user = context.user;
+
+      if (!user) {
+        throw new AuthenticationError('You must be logged in');
+      }
+
+      const updatedUser = await User.findByIdAndUpdate(
+        { _id: user._id },
+        { $pull: { savedBooks: { bookId } } },
+        { new: true }
+      );
+
+      if (!updatedUser) {
+        throw new Error("Couldn't find user with this ID!");
+      }
+
+      return updatedUser;
+    },
+  },
+};
+
+export default resolvers;
