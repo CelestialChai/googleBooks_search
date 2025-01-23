@@ -112,7 +112,9 @@ npm start
 
 ## Features
 - **Search Page**: Allows users to search for books.
+![Screenshot](assets/Screenshot%202025-01-23%20130850.png)
 - **Saved Books Page**: Displays the list of saved books for authenticated users.
+![screenshot](assets/Screenshot%202025-01-23%20130935.png)
 
 ---
 
@@ -122,8 +124,8 @@ None
 ---
 
 ## Contributors
-- [Amanda Gipson - Github](https://github.com/celestialchai)
-- [Walkthrough Video](https://youtube.com)
+- [LIVE SITE Render](https://googlebooks-search.onrender.com)
+- [Github](https://github.com/celestialchai)
 
 ---
 
