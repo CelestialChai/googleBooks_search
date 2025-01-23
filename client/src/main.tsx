@@ -11,6 +11,7 @@ const client = new ApolloClient({
   uri: 'http://localhost:3001/graphql',
   cache: new InMemoryCache(),
   credentials: 'include',
+  headers: { 'x-apollo-operation-name': 'SafeRequest' },
 });
 
 const router = createBrowserRouter([

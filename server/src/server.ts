@@ -1,3 +1,6 @@
+import dotenv from 'dotenv';
+dotenv.config();
+
 import express from 'express';
 import path from 'node:path';
 import { ApolloServer } from '@apollo/server';
@@ -12,12 +15,13 @@ import jwt from 'jsonwebtoken';
 import bcrypt from 'bcrypt';
 import cors from 'cors';
 
-// Updated CORS configuration
+console.log('JWT_SECRET_KEY:', process.env.JWT_SECRET_KEY);
+
 const corsOptions = {
-  origin: 'http://localhost:3000', // Allow the frontend's origin
-  methods: ['GET', 'POST', 'DELETE', 'OPTIONS'], // Add OPTIONS for preflight requests
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'], // Ensure that necessary headers are allowed
-  credentials: true, // Allow cookies and authentication
+  origin: 'http://localhost:3000',
+  methods: ['GET', 'POST', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'x-apollo-operation-name', 'apollo-require-preflight'],
+  credentials: true,
 };
 
 const app = express();
@@ -30,7 +34,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
 if (process.env.NODE_ENV === 'production') {
-  app.use(express.static(path.join(__dirname, '../client/build', 'index.html')));
+  app.use(express.static(path.join(__dirname, '../client/build')));
 }
 
 app.post('/signup', async (req, res) => {
@@ -56,12 +60,13 @@ app.post('/signup', async (req, res) => {
 
     await newUser.save();
 
-    const token = jwt.sign({ userId: newUser._id, username: newUser.username }, process.env.JWT_SECRET!, {
-      expiresIn: '1h',
-    });
+    const token = jwt.sign(
+      { userId: newUser._id, username: newUser.username },
+      process.env.JWT_SECRET_KEY!,
+      { expiresIn: '1h' }
+    );
 
     return res.status(200).json({ token });
-
   } catch (err) {
     console.error(err);
     return res.status(500).json({ message: 'Something went wrong during signup' });

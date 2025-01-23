@@ -10,43 +10,60 @@ interface JwtPayload {
   email: string;
 }
 
+const secretKey = process.env.JWT_SECRET_KEY;
+if (!secretKey) {
+  console.error('Error: JWT_SECRET_KEY is not defined in environment variables.');
+  throw new Error('JWT_SECRET_KEY is required but not defined.');
+}
+
 export const authenticateToken = (req: Request, res: Response, next: NextFunction): Response | void => {
   const authHeader = req.headers.authorization;
 
   if (authHeader) {
     const token = authHeader.split(' ')[1];
-    const secretKey = process.env.JWT_SECRET_KEY || '';
 
     jwt.verify(token, secretKey, (err, user) => {
       if (err) {
-        return res.sendStatus(403);
+        console.error('Token verification failed:', err.message);
+        return res.status(403).json({ message: 'Invalid or expired token.' });
       }
 
       req.user = user as JwtPayload;
       return next();
     });
   } else {
-    return res.sendStatus(401);
+    console.error('Authorization header is missing.');
+    return res.status(401).json({ message: 'Unauthorized. No token provided.' });
   }
 };
 
-export const signToken = (username: string, email: string, _id: string) => {
+export const signToken = (username: string, email: string, _id: string): string => {
   const payload = { username, email, _id };
-  const secretKey = process.env.JWT_SECRET_KEY || '';
 
-  return jwt.sign(payload, secretKey, { expiresIn: '1h' });
+  try {
+    const token = jwt.sign(payload, secretKey, { expiresIn: '1h' });
+    console.log('Token successfully signed:', token);
+    return token;
+  } catch (err) {
+    console.error('Error signing token:', (err as Error).message);
+    throw new Error('Failed to sign token.');
+  }
 };
 
 export const authenticateGraphQL = (authHeader: string): JwtPayload | null => {
-  if (!authHeader) return null;
+  if (!authHeader) {
+    console.error('Authorization header is missing in GraphQL context.');
+    return null;
+  }
 
   const token = authHeader.split(' ')[1];
-  const secretKey = process.env.JWT_SECRET_KEY || '';
 
   try {
-    const decoded = jwt.verify(token, secretKey);
-    return decoded as JwtPayload;
+    const decoded = jwt.verify(token, secretKey) as JwtPayload;
+    console.log('Token successfully verified for GraphQL context.');
+    return decoded;
   } catch (err) {
+    console.error('Error verifying token in GraphQL context:', (err as Error).message);
     return null;
   }
 };
