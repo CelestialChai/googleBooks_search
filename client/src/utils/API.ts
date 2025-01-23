@@ -104,7 +104,7 @@ const API = {
 };
 
 const client = new ApolloClient({
-  uri: 'http://localhost:3001/graphql',
+  uri: 'https://googlebooks-search.onrender.com',
   cache: new InMemoryCache(),
 });
 
