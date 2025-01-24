@@ -128,12 +128,12 @@ const SavedBooks = () => {
                   <Card.Title>{book.title}</Card.Title>
                   <p className="small">Authors: {book.authors.join(', ')}</p>
                   <Card.Text>{book.description}</Card.Text>
-                  <Button
+                    {/* <Button
                     className="btn-block btn-success mb-2"
                     onClick={() => handleSaveBook(book)}
-                  >
+                    >
                     Save this Book!
-                  </Button>
+                    </Button> */}
                   <Button
                     className="btn-block btn-danger"
                     onClick={() => handleDeleteBook(book.bookId)}
