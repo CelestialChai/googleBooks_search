@@ -132,4 +132,5 @@ None
 ## Acknowledgements
 - [Google Books API](https://developers.google.com/books)
 - [Render](https://render.com) for deployment
+- [Walkthrough Video](https://www.youtube.com/watch?v=rewx1x1juBc) Demostration on how the site functions
 - [React Bootstrap](https://react-bootstrap.github.io/) for UI components

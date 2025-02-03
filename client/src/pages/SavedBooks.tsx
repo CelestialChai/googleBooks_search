@@ -14,7 +14,7 @@ const SavedBooks = () => {
   const userData = data?.me;
 
   // Mutation to save a book
-  const [saveBook, { error: saveError }] = useMutation(SAVE_BOOK);
+  // const [saveBook, { error: saveError }] = useMutation(SAVE_BOOK);
 
   // Mutation to remove a book
   const [removeBook, { error: removeError }] = useMutation(REMOVE_BOOK);
@@ -49,37 +49,37 @@ const SavedBooks = () => {
     }
   };
 
-  const handleSaveBook = async (book: Book) => {
-    const token = Auth.loggedIn() ? Auth.getToken() : null;
+  // const handleSaveBook = async (book: Book) => {
+  //   const token = Auth.loggedIn() ? Auth.getToken() : null;
 
-    if (!token) {
-      console.error('No valid token found.');
-      return false;
-    }
+  //   if (!token) {
+  //     console.error('No valid token found.');
+  //     return false;
+  //   }
 
-    try {
-      console.log('Book data being sent to mutation:', book);
-      // Execute SAVE_BOOK mutation
-      const { data } = await saveBook({
-        variables: {
-          book: {
-            authors: book.authors,
-            description: book.description,
-            title: book.title,
-            bookId: book.bookId,
-            image: book.image,
-            link: book.link,
-          },
-        },
-      });
+  //   try {
+  //     console.log('Book data being sent to mutation:', book);
+  //     // Execute SAVE_BOOK mutation
+  //     const { data } = await saveBook({
+  //       variables: {
+  //         book: {
+  //           authors: book.authors,
+  //           description: book.description,
+  //           title: book.title,
+  //           bookId: book.bookId,
+  //           image: book.image,
+  //           link: book.link,
+  //         },
+  //       },
+  //     });
 
-      if (data?.saveBook) {
-        console.log(`Book titled "${book.title}" saved successfully.`);
-      }
-    } catch (err) {
-      console.error('Error saving book:', err);
-    }
-  };
+  //     if (data?.saveBook) {
+  //       console.log(`Book titled "${book.title}" saved successfully.`);
+  //     }
+  //   } catch (err) {
+  //     console.error('Error saving book:', err);
+  //   }
+  // };
 
   // Display loading state
   if (loading) {
@@ -87,9 +87,9 @@ const SavedBooks = () => {
   }
 
   // Display errors for mutations
-  if (saveError) {
-    console.error('Error in SAVE_BOOK mutation:', saveError.message);
-  }
+  // if (saveError) {
+  //   console.error('Error in SAVE_BOOK mutation:', saveError.message);
+  // }
   if (removeError) {
     console.error('Error in REMOVE_BOOK mutation:', removeError.message);
   }
@@ -128,12 +128,12 @@ const SavedBooks = () => {
                   <Card.Title>{book.title}</Card.Title>
                   <p className="small">Authors: {book.authors.join(', ')}</p>
                   <Card.Text>{book.description}</Card.Text>
-                    <Button
+                    {/* <Button
                     className="btn-block btn-success mb-2"
                     onClick={() => handleSaveBook(book)}
                     >
                     Save this Book!
-                    </Button>
+                    </Button> */}
                   <Button
                     className="btn-block btn-danger"
                     onClick={() => handleDeleteBook(book.bookId)}
